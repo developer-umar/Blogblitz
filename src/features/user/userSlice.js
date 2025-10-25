@@ -30,7 +30,7 @@ export const fetchUser  =  createAsyncThunk("/user/fetchUser",async(_,thunkAPI)=
 export const registerUser = createAsyncThunk("/user/register",async(userdata,thunkAPI)=>{
     try {
 
-        const {data} = await axios.post("/register",userdata);
+        const {data} = await axios.post("user/register",userdata);
         return data.data;
         
     } catch (error) {
