@@ -21,8 +21,9 @@ function Post() {
         <div className="h-screen overflow-y-auto hide-scrollbar">
           <Feed />
         </div>
+        
       </div>
-
+    
       {/* Right Sidebar: fixed (sticky) */}
       <div className="hidden lg:block lg:w-[28%] border-l border-gray-800 p-4 bg-black">
         <div className="sticky top-0 h-screen overflow-hidden">
