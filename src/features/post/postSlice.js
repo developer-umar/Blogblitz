@@ -1,8 +1,10 @@
+// src/features/post/postSlice.js (Final Correct Code)
+
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit"
 import axios from "../../utils/axios"
 
 
-//  async thunk handlers for async operations
+//  async thunk handlers for async operations
 
 // get all posts
 
@@ -11,9 +13,23 @@ export const getAllPosts = createAsyncThunk("/post/getallpost", async (_, thunkA
     try {
 
         const { data } = await axios.get("post/getallposts");
-        return data.data.posts
+        return data.data.posts || []
+
+    } catch (error) {
+        return thunkAPI.rejectWithValue(error.response?.data?.message || "Failed to fetch posts");
+    }
 
 
+})
+
+// get post by author id
+
+export const getpostbyauthorId = createAsyncThunk("post/authorId", async (authorId, thunkAPI) => {
+
+    try {
+
+        const { data } = await axios.get(`post/${authorId}`);
+        return data.data.posts || []
 
     } catch (error) {
         return thunkAPI.rejectWithValue(error.response?.data?.message || "Failed to fetch posts");
@@ -22,7 +38,7 @@ export const getAllPosts = createAsyncThunk("/post/getallpost", async (_, thunkA
 })
 
 
-//  create post 
+//  create post 
 
 export const createPost = createAsyncThunk("/post/createpost", async (formData, thunkAPI) => {
 
@@ -35,12 +51,12 @@ export const createPost = createAsyncThunk("/post/createpost", async (formData, 
         return data.data;
 
     } catch (error) {
-        return thunkAPI.rejectWithValue(error.response?.data?.message || "Failed  to create posts");
+        return thunkAPI.rejectWithValue(error.response?.data?.message || "Failed  to create posts");
 
     }
 })
 
-// get postbyid or single post
+// get post by id or single post
 
 export const getPostById = createAsyncThunk("/post/getpostbyId", async (postId, thunkAPI) => {
 
@@ -54,7 +70,7 @@ export const getPostById = createAsyncThunk("/post/getpostbyId", async (postId, 
 
     } catch (error) {
 
-        return thunkAPI.rejectWithValue(error.response?.data?.message || "Failed  to fetch  posts");
+        return thunkAPI.rejectWithValue(error.response?.data?.message || "Failed  to fetch  posts");
 
     }
 
@@ -72,7 +88,7 @@ export const deletePost = createAsyncThunk("/post/deletePost", async (postId, th
         return { postId, message: data.message }
     } catch (error) {
 
-        return thunkAPI.rejectWithValue(error.response?.data?.message || "Failed  to delete  posts");
+        return thunkAPI.rejectWithValue(error.response?.data?.message || "Failed  to delete  posts");
 
 
     }
@@ -89,23 +105,22 @@ export const toggleLike = createAsyncThunk("/post/togglelike", async (postId, th
         return { postId, ...data.data };
 
     } catch (error) {
-        return thunkAPI.rejectWithValue(error.response?.data?.message || "Failed  to toggle like");
+        return thunkAPI.rejectWithValue(error.response?.data?.message || "Failed  to toggle like");
 
     }
 })
 
 
 // category filtering 
-// backend me rojutes me query btaan eki zaroorat nhi hot wo controllers me direct req.query  object me mil jaata hai express me forntend se ham  category=technology aise query bhej rahe hain
 
 export const getPostsByCategory = createAsyncThunk("/post/getPostsByCategory", async (category, thunkAPI) => {
 
     try {
         const { data } = await axios.get(`/post/category?category=${category}`);
-        return data.data.posts;
+        return data.data.posts || [];
 
     } catch (error) {
-        return thunkAPI.rejectWithValue(error.response?.data?.message || "Failed  to fetch category posts");
+        return thunkAPI.rejectWithValue(error.response?.data?.message || "Failed  to fetch category posts");
 
 
     }
@@ -130,22 +145,15 @@ export const searchPosts = createAsyncThunk(
 );
 
 
-
-
-
-
-
 const initialState = {
 
-    posts: [],                //posts 
-    singlePost: null,       //single post for edit nulland to see,
+    posts: [],
+    singlePost: null,
     loading: false,
     error: null,
     message: null,
 
 }
-
-
 
 
 const postSlice = createSlice({
@@ -175,7 +183,25 @@ const postSlice = createSlice({
             .addCase(getAllPosts.rejected, (state, action) => {
                 state.loading = false,
                     state.error = action.payload
+                state.posts = []; // ✅ FIX: Clear posts on error
             })
+
+            // get postbyauthorId
+
+            .addCase(getpostbyauthorId.pending, (state) => {
+                state.loading = true
+
+            })
+            .addCase(getpostbyauthorId.fulfilled, (state, action) => {
+                state.loading = false,
+                    state.posts = action.payload
+            })
+            .addCase(getpostbyauthorId.rejected, (state, action) => {
+                state.loading = false,
+                    state.error = action.payload
+                state.posts = [];
+            })
+
 
             // createPost
 
@@ -184,13 +210,13 @@ const postSlice = createSlice({
             })
             .addCase(createPost.fulfilled, (state, action) => {
                 state.loading = false,
-                    state.posts.unshift(action.payload)  // newly created post add top pe
+                    state.posts.unshift(action.payload)
                 state.message = "post created sucessfully"
             })
             .addCase(createPost.rejected, (state, action) => {
                 state.loading = false
                 state.error = action.payload
-
+                state.posts = []; // ✅ FIX: Clear posts on error
             })
 
             // get post by Id 
@@ -205,6 +231,7 @@ const postSlice = createSlice({
             .addCase(getPostById.rejected, (state, action) => {
                 state.loading = false,
                     state.error = action.payload
+                state.singlePost = null; // ✅ FIX: Clear singlePost on error
             })
 
             // delte post
@@ -215,21 +242,24 @@ const postSlice = createSlice({
             })
             .addCase(deletePost.fulfilled, (state, action) => {
                 state.loading = false,
-                state.posts = state.posts.filter((post) => post._id !== action.payload.postId);
+                    state.posts = state.posts.filter((post) => post._id !== action.payload.postId);
                 state.message = action.payload.message;
             })
             .addCase(deletePost.rejected, (state, action) => {
                 state.loading = false,
                     state.error = action.payload
+                state.posts = []; // ✅ FIX: Clear posts on error
             })
 
             // toggle like 
 
             .addCase(toggleLike.pending, (state) => {
-                state.loading = true
+                // state.loading = true
             })
             .addCase(toggleLike.fulfilled, (state, action) => {
+                // state.loading = false;
                 const { postId, isLiked, likeCount } = action.payload;
+
                 const post = state.posts.find((p) => p._id === postId);
                 if (post) {
                     post.likeCount = likeCount;
@@ -243,8 +273,8 @@ const postSlice = createSlice({
             })
 
             .addCase(toggleLike.rejected, (state, action) => {
-                state.loading = false,
-                    state.error = action.payload
+                // state.loading = false,
+                state.error = action.payload
             })
 
             // getposts by category
@@ -261,10 +291,10 @@ const postSlice = createSlice({
             .addCase(getPostsByCategory.rejected, (state, action) => {
                 state.loading = false,
                     state.error = action.payload
+                state.posts = []; // ✅ FIX: Clear posts on error
             })
-            // search filter  //isme maine count kitne search result  aae wo  do wo nhi derha hai 
 
-            // uske liye ke ra state banna padta ham log ko  count naam ka
+            // search filter 
 
             .addCase(searchPosts.pending, (state) => {
                 state.loading = true
@@ -277,14 +307,9 @@ const postSlice = createSlice({
             .addCase(searchPosts.rejected, (state, action) => {
                 state.loading = false,
                     state.error = action.payload;
+                state.posts = []; // FIX: Clear posts on error
             })
-
-
-
     }
 })
-
-
-
 
 export default postSlice.reducer;
