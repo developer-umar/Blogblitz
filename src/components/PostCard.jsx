@@ -81,9 +81,8 @@ const PostCard = ({ post, isDetailed = false }) => {
 
   return (
     <div
-      className={`border-b border-gray-800 p-4 transition duration-200 ${
-        !isDetailed ? "hover:bg-[#16181c] cursor-pointer" : ""
-      }`}
+      className={`border-b border-gray-800 p-4 transition duration-200 ${!isDetailed ? "hover:bg-[#16181c] cursor-pointer" : ""
+        }`}
       onClick={handlePostClick}
     >
       {/* 🧑 Header */}
@@ -103,13 +102,19 @@ const PostCard = ({ post, isDetailed = false }) => {
         </div>
       </div>
 
+      {/* 🏷️ Title */}
+      {post.title && (
+        <h2 className="text-white font-bold text-lg mb-1 leading-snug tracking-wide">
+          {post.title}
+        </h2>
+      )}
+
       {/* 📝 Content */}
       {post.content && (
         <div className="text-white mb-2 whitespace-pre-wrap">
           <p
-            className={`${
-              !expanded && needsSeeMore ? "line-clamp-3" : ""
-            } break-words`}
+            className={`${!expanded && needsSeeMore ? "line-clamp-3" : ""
+              } break-words`}
           >
             {post.content}
           </p>
@@ -154,13 +159,12 @@ const PostCard = ({ post, isDetailed = false }) => {
           type="button"
           onClick={handleLike}
           disabled={isLiking}
-          className={`flex items-center space-x-2 cursor-pointer transform transition hover:scale-110 ${
-            isLiking ? "opacity-50 cursor-not-allowed" : "hover:text-pink-500"
-          }`}
+          className={`flex items-center space-x-2 cursor-pointer transform transition hover:scale-110 ${isLiking ? "opacity-50 cursor-not-allowed" : "hover:text-pink-500"
+            }`}
           title="Like Post"
         >
           {post.isLiked ? <FaHeart className="text-pink-500" /> : <FaRegHeart />}
-         { isDetailed ? <span>{post.likesCount || 0}</span>  : <span>{post.likeCount || 0}  </span> }
+          {isDetailed ? <span>{post.likesCount || 0}</span> : <span>{post.likeCount || 0}  </span>}
         </button>
 
         {/* 💬 Comment */}
@@ -185,10 +189,10 @@ const PostCard = ({ post, isDetailed = false }) => {
 
       {/* 💬 Comments Overlay (Feed Page Only) */}
       {!isDetailed && showComments && (
-        <div className="fixed inset-0 bg-black/70 flex justify-center items-center z-50"onClick={(e) => e.stopPropagation()} >
-            
-          <div className="bg-[#0f1115] rounded-2xl w-[90%] max-w-lg max-h-[85vh] overflow-y-auto p-5 relative shadow-lg shadow-black/40"  onClick={(e) => e.stopPropagation()}>
-           
+        <div className="fixed inset-0 bg-black/70 flex justify-center items-center z-50" onClick={(e) => e.stopPropagation()} >
+
+          <div className="bg-[#0f1115] rounded-2xl w-[90%] max-w-lg max-h-[85vh] overflow-y-auto p-5 relative shadow-lg shadow-black/40" onClick={(e) => e.stopPropagation()}>
+
 
             <div className="flex justify-between items-center mb-3 border-b border-gray-700 pb-2">
               <h2 className="text-white font-semibold text-lg">
