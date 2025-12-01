@@ -2,7 +2,7 @@ import axios from "axios";
 
 //  Axios instance bana liya
 const axiosInstance = axios.create({
-  baseURL: "https://blogblitz.onrender.com/api/v1/", // apne backend ka URL daalna
+  baseURL: "https://blockblitz-omega.vercel.app/api/v1/", // apne backend ka URL daalna
   withCredentials: true, // cookies ke sath request bhejne ke liye automatically 
 });
 
