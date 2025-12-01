@@ -23,7 +23,7 @@ function App() {
         <Route path ="/create-post" element={<CreatePost/>}  />
 
         {/* Optional: Redirect unknown routes */}
-        <Route path="*" element={<Navigate to="/post" />} />
+        {/* <Route path="*" element={<Navigate to="/post" />} /> */}
 
       </Routes>
     </>

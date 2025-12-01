@@ -10,7 +10,7 @@ const Filters = ({ category, setCategory }) => {
         <button
           key={cat}
           onClick={() => setCategory(cat)}
-          className={`px-4 py-1 rounded-full font-medium text-sm transition ${
+          className={`px-4 py-1   rounded-full font-medium cursor-pointer text-sm transition ${
             category === cat
               ? "bg-blue-500 text-white"
               : "text-gray-400 hover:text-gray-200 hover:bg-[#1c1f26]"
