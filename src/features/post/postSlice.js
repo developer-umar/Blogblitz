@@ -1,315 +1,178 @@
-// src/features/post/postSlice.js (Final Correct Code)
+// src/features/post/postSlice.js
 
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit"
-import axios from "../../utils/axios"
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import axios from "../../utils/axios";
 
+/* ===================== THUNKS ===================== */
 
-//  async thunk handlers for async operations
-
-// get all posts
-
-export const getAllPosts = createAsyncThunk("/post/getallpost", async (_, thunkAPI) => {
-
-    try {
-
-        const { data } = await axios.get("post/getallposts");
-        return data.data.posts || []
-
-    } catch (error) {
-        return thunkAPI.rejectWithValue(error.response?.data?.message || "Failed to fetch posts");
+export const getAllPosts = createAsyncThunk(
+    "post/getAllPosts",
+    async (_, thunkAPI) => {
+        try {
+            const { data } = await axios.get("post/getallposts");
+            return data.data.posts || [];
+        } catch (err) {
+            return thunkAPI.rejectWithValue("Failed to fetch posts");
+        }
     }
+);
 
-
-})
-
-// get post by author id
-
-export const getpostbyauthorId = createAsyncThunk("post/authorId", async (authorId, thunkAPI) => {
-
-    try {
-
-        const { data } = await axios.get(`post/${authorId}`);
-        return data.data.posts || []
-
-    } catch (error) {
-        return thunkAPI.rejectWithValue(error.response?.data?.message || "Failed to fetch posts");
+export const getpostbyauthorId = createAsyncThunk(
+    "post/getPostsByAuthor",
+    async (authorId, thunkAPI) => {
+        try {
+            const { data } = await axios.get(`post/${authorId}`);
+            return data.data.posts || [];
+        } catch (err) {
+            return thunkAPI.rejectWithValue("Failed to fetch author posts");
+        }
     }
+);
 
-})
-
-
-//  create post 
-
-export const createPost = createAsyncThunk("/post/createpost", async (formData, thunkAPI) => {
-
-    try {
-
-        const { data } = await axios.post("post/create", formData, {
-            headers: { "Content-Type": "multipart/form-data" },
-        })
-
-        return data.data;
-
-    } catch (error) {
-        return thunkAPI.rejectWithValue(error.response?.data?.message || "Failed  to create posts");
-
+export const createPost = createAsyncThunk(
+    "post/createPost",
+    async (formData, thunkAPI) => {
+        try {
+            const { data } = await axios.post("post/create", formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+            return data.data;
+        } catch (err) {
+            return thunkAPI.rejectWithValue("Failed to create post");
+        }
     }
-})
+);
 
-// get post by id or single post
-
-export const getPostById = createAsyncThunk("/post/getpostbyId", async (postId, thunkAPI) => {
-
-
-    try {
-
-        const { data } = await axios.get(`post/getpost/${postId}`);
-
-        return data.data;
-
-
-    } catch (error) {
-
-        return thunkAPI.rejectWithValue(error.response?.data?.message || "Failed  to fetch  posts");
-
+export const deletePost = createAsyncThunk(
+    "post/deletePost",
+    async (postId, thunkAPI) => {
+        try {
+            const { data } = await axios.delete(`post/delete/${postId}`);
+            return { postId, message: data.message };
+        } catch (err) {
+            return thunkAPI.rejectWithValue("Failed to delete post");
+        }
     }
+);
 
-
-})
-
-// delete post by id 
-
-export const deletePost = createAsyncThunk("/post/deletePost", async (postId, thunkAPI) => {
-
-
-    try {
-
-        const { data } = await axios.delete(`post/delete/${postId}`);
-        return { postId, message: data.message }
-    } catch (error) {
-
-        return thunkAPI.rejectWithValue(error.response?.data?.message || "Failed  to delete  posts");
-
-
+export const toggleLike = createAsyncThunk(
+    "post/toggleLike",
+    async (postId, thunkAPI) => {
+        try {
+            const { data } = await axios.post(`post/like/${postId}`);
+            return { postId, ...data.data };
+        } catch (err) {
+            return thunkAPI.rejectWithValue("Failed to toggle like");
+        }
     }
+);
 
-})
-
-// toggle likes on post 
-
-
-export const toggleLike = createAsyncThunk("/post/togglelike", async (postId, thunkAPI) => {
-
-    try {
-        const { data } = await axios.post(`post/like/${postId}`)
-        return { postId, ...data.data };
-
-    } catch (error) {
-        return thunkAPI.rejectWithValue(error.response?.data?.message || "Failed  to toggle like");
-
+export const getPostsByCategory = createAsyncThunk(
+    "post/getPostsByCategory",
+    async (category, thunkAPI) => {
+        try {
+            const { data } = await axios.get(`/post/category?category=${category}`);
+            return data.data.posts || [];
+        } catch (err) {
+            return thunkAPI.rejectWithValue("Failed to fetch category posts");
+        }
     }
-})
+);
 
-
-// category filtering 
-
-export const getPostsByCategory = createAsyncThunk("/post/getPostsByCategory", async (category, thunkAPI) => {
-
-    try {
-        const { data } = await axios.get(`/post/category?category=${category}`);
-        return data.data.posts || [];
-
-    } catch (error) {
-        return thunkAPI.rejectWithValue(error.response?.data?.message || "Failed  to fetch category posts");
-
-
-    }
-
-
-
-})
-
-// search filter 
 export const searchPosts = createAsyncThunk(
     "post/searchPosts",
     async (query, thunkAPI) => {
         try {
             const { data } = await axios.get(`post/search?query=${query}`);
-            return data.data.posts;
-        } catch (error) {
-            return thunkAPI.rejectWithValue(
-                error.response?.data?.message || "Search failed"
-            );
+            return data.data.posts || [];
+        } catch (err) {
+            return thunkAPI.rejectWithValue("Search failed");
         }
     }
 );
 
+/* ===================== SLICE ===================== */
 
 const initialState = {
-
-    posts: [],
+    feedPosts: [],
+    profilePosts: [],
+    categoryPosts: [],
+    searchPosts: [],
     singlePost: null,
     loading: false,
     error: null,
-    message: null,
-
-}
-
+};
 
 const postSlice = createSlice({
     name: "post",
     initialState,
 
     reducers: {
-        clearPostmessage: (state) => {
-            state.message = null,
-                state.error = null
-        }
+        clearPostError: (state) => {
+            state.error = null;
+        },
     },
 
     extraReducers: (builder) => {
-
-
         builder
-            // getallposts
-            .addCase(getAllPosts.pending, (state) => {
-                state.loading = true
 
+            /* ===== FEED ===== */
+            .addCase(getAllPosts.pending, (state) => {
+                state.loading = true;
             })
             .addCase(getAllPosts.fulfilled, (state, action) => {
-                state.loading = false,
-                    state.posts = action.payload
+                state.loading = false;
+                state.feedPosts = action.payload;
             })
             .addCase(getAllPosts.rejected, (state, action) => {
-                state.loading = false,
-                    state.error = action.payload
-                state.posts = []; // ✅ FIX: Clear posts on error
+                state.loading = false;
+                state.error = action.payload;
             })
 
-            // get postbyauthorId
-
-            .addCase(getpostbyauthorId.pending, (state) => {
-                state.loading = true
-
-            })
+            /* ===== PROFILE ===== */
             .addCase(getpostbyauthorId.fulfilled, (state, action) => {
-                state.loading = false,
-                    state.posts = action.payload
-            })
-            .addCase(getpostbyauthorId.rejected, (state, action) => {
-                state.loading = false,
-                    state.error = action.payload
-                state.posts = [];
+                state.loading = false;
+                state.profilePosts = action.payload;
             })
 
-
-            // createPost
-
-            .addCase(createPost.pending, (state) => {
-                state.loading = true
-            })
+            /* ===== CREATE ===== */
             .addCase(createPost.fulfilled, (state, action) => {
-                state.loading = false,
-                    state.posts.unshift(action.payload)
-                state.message = "post created sucessfully"
-            })
-            .addCase(createPost.rejected, (state, action) => {
-                state.loading = false
-                state.error = action.payload
-                state.posts = []; // ✅ FIX: Clear posts on error
+                state.feedPosts.unshift(action.payload);
+                state.profilePosts.unshift(action.payload);
             })
 
-            // get post by Id 
-
-            .addCase(getPostById.pending, (state) => {
-                state.loading = true
-            })
-            .addCase(getPostById.fulfilled, (state, action) => {
-                state.loading = false,
-                    state.singlePost = action.payload
-            })
-            .addCase(getPostById.rejected, (state, action) => {
-                state.loading = false,
-                    state.error = action.payload
-                state.singlePost = null; // ✅ FIX: Clear singlePost on error
-            })
-
-            // delte post
-
-            .addCase(deletePost.pending, (state) => {
-                state.loading = true
-
-            })
+            /* ===== DELETE ===== */
             .addCase(deletePost.fulfilled, (state, action) => {
-                state.loading = false,
-                    state.posts = state.posts.filter((post) => post._id !== action.payload.postId);
-                state.message = action.payload.message;
-            })
-            .addCase(deletePost.rejected, (state, action) => {
-                state.loading = false,
-                    state.error = action.payload
-                state.posts = []; // ✅ FIX: Clear posts on error
+                const id = action.payload.postId;
+                state.feedPosts = state.feedPosts.filter(p => p._id !== id);
+                state.profilePosts = state.profilePosts.filter(p => p._id !== id);
             })
 
-            // toggle like 
-
-            .addCase(toggleLike.pending, (state) => {
-                // state.loading = true
-            })
+            /* ===== LIKE ===== */
             .addCase(toggleLike.fulfilled, (state, action) => {
-                // state.loading = false;
                 const { postId, isLiked, likeCount } = action.payload;
 
-                const post = state.posts.find((p) => p._id === postId);
-                if (post) {
-                    post.likeCount = likeCount;
-                    post.isLiked = isLiked;
-                }
-                // agar singlePost page pr hai to wahan bhi update kar de
-                if (state.singlePost && state.singlePost._id === postId) {
-                    state.singlePost.likeCount = likeCount;
-                    state.singlePost.isLiked = isLiked;
-                }
+                const update = (post) => {
+                    if (post._id === postId) {
+                        post.isLiked = isLiked;
+                        post.likeCount = likeCount;
+                    }
+                };
+
+                state.feedPosts.forEach(update);
+                state.profilePosts.forEach(update);
             })
 
-            .addCase(toggleLike.rejected, (state, action) => {
-                // state.loading = false,
-                state.error = action.payload
-            })
-
-            // getposts by category
-
-            .addCase(getPostsByCategory.pending, (state) => {
-                state.loading = true
-
-            })
+            /* ===== CATEGORY ===== */
             .addCase(getPostsByCategory.fulfilled, (state, action) => {
-                state.loading = false,
-                    state.posts = action.payload
-
-            })
-            .addCase(getPostsByCategory.rejected, (state, action) => {
-                state.loading = false,
-                    state.error = action.payload
-                state.posts = []; // ✅ FIX: Clear posts on error
+                state.categoryPosts = action.payload;
             })
 
-            // search filter 
-
-            .addCase(searchPosts.pending, (state) => {
-                state.loading = true
-
-            })
+            /* ===== SEARCH ===== */
             .addCase(searchPosts.fulfilled, (state, action) => {
-                state.loading = false
-                state.posts = action.payload
-            })
-            .addCase(searchPosts.rejected, (state, action) => {
-                state.loading = false,
-                    state.error = action.payload;
-                state.posts = []; // FIX: Clear posts on error
-            })
-    }
-})
+                state.searchPosts = action.payload;
+            });
+    },
+});
 
 export default postSlice.reducer;
